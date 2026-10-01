@@ -1,0 +1,9 @@
+# customisations
+- commented out lots of ancient CSS validation rules in worker-css.js
+worker-css.js  & mode-css.js: added extra properties that weren't recognised e.g: 
+fill
+grid properties
+fr to worker-css and mode-css (remember to add ^fr$ too)
+
+ return token ? PropertyValuePart.fromToken(token) : null;
+SyntaxUnit
