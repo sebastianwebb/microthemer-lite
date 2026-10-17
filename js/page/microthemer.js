@@ -91,6 +91,8 @@ jQuery(document).ready(function($){
 		tmp: {}, // if a setting is turned on/off temporarily
 		uiUrl: $('#ui-url').attr('rel'),
 		pluginUrl: $('#plugin-url').attr('rel'),
+		animateCssUrl: $('#animate-css-url').attr('rel'), // empty in builds without the stock animations
+		codeEditors: parseInt($('#code-editors').attr('rel')) === 1, // full and per-selector code editors (not in every build)
 		innoFireall: parseInt($('#inno-firewall-issue').attr('rel')),
 		//wpAjaxUrl: $('#wp_ajax_url').attr('rel'), // includes ?page=microthemeruipage
 		adminUrl: $('#admin-url').attr('rel'),
@@ -7887,6 +7889,11 @@ jQuery(document).ready(function($){
 							? 'code'
 							: item.pg;
 
+						// nowhere to show selector code in builds without the code editors
+						if (pgToEdit === 'code' && !TvrUi.codeEditors){
+							continue;
+						}
+
 						entries+= '<div class="mt-search-entry" ' +
 							'data-pg="'+pgToEdit+'" data-property="'+item.property+'" data-mq_key="'+mq_key+'"'+indexAttr+'>' +
 							item.label
@@ -9902,6 +9909,7 @@ jQuery(document).ready(function($){
 		loadOrReloadEditor: function(){
 
 			if (
+				TvrUi.codeEditors &&
 				!TvrUi.pref.show_code_editor &&
 				(TvrUi.pref.pg_focus === 'code' || MTlayout.editor_and_gui()) &&
 				!TvrUi.editor_to_gui_running){
@@ -14995,6 +15003,11 @@ jQuery(document).ready(function($){
 
 			var editor = MTace.eds['adaptable-editor'];
 
+			// builds without the code editors have no editor to switch to
+			if (!editor){
+				return;
+			}
+
 			// go to gui fields if shortcut used from editor
 			if (editor.isFocused()){ // TvrUi.stat.tvr.hasClass('onlyInlineEditor')
 				editor.blur(); // because color picker open doesn't move focus
@@ -15035,6 +15048,11 @@ jQuery(document).ready(function($){
 			$clicked = tog.clicked;
 			aspect = tog.aspect;
 			config = config ? config : {};
+
+			// no code editor to show or dock in builds without the code editors
+			if (!TvrUi.codeEditors && (aspect === 'show_code_editor' || aspect === 'dock_editor_left')){
+				return false;
+			}
 			var turnOn = tog.turnOn,
 				$filter_scope = tog.$filter_scope ? tog.$filter_scope : false,
 				extraParam = '',
@@ -21984,12 +22002,14 @@ jQuery(document).ready(function($){
 
 			// bind the adaptable editor which has content updated rather than using bind/unbind each time
 
-			MTace.bind_editor(TvrUi.stat.inlineEditor, {
-				filterClass: 'custom-css-pre',
-				mode: parseInt(TvrUi.pref.allow_scss) ? 'scss' : 'css',
-				M: 'css',
-				directContent: 'pending'
-			});
+			if (TvrUi.codeEditors){
+				MTace.bind_editor(TvrUi.stat.inlineEditor, {
+					filterClass: 'custom-css-pre',
+					mode: parseInt(TvrUi.pref.allow_scss) ? 'scss' : 'css',
+					M: 'css',
+					directContent: 'pending'
+				});
+			}
 
             // bind gridstack if we're loading CSS grid options
             MTgrid.bind_gridstack();

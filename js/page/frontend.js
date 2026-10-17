@@ -533,11 +533,12 @@ try {
 						var min = window.TVR_DEV_MODE ? '/page' : '-min';
 
 						// load animate.min.css (for instant preview in MT)
-						var minAntimateURL = TvrUi.pluginUrl + 'css/animate.min.css?v=2';
-						$firstSep
-							.before(
-								'<link rel="stylesheet" type="text/css" href="'+minAntimateURL+'">'
-							);
+						if (TvrUi.animateCssUrl){
+							$firstSep
+								.before(
+									'<link rel="stylesheet" type="text/css" href="'+TvrUi.animateCssUrl+'">'
+								);
+						}
 
 						// load MT icon font (could use inline svg, but might look better as font as icons are small)
 						//var iconFont = TvrUi.pluginUrl + 'images/icon-font/css/microthemer.css?v=2';

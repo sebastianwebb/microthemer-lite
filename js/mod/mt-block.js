@@ -827,6 +827,7 @@ if (!window.MTiframeShouldBail){
 
 					let data = {
 						live_post_content: blockList.refsHtml,
+						live_nonce: (window.MTBlockData || {}).liveNonce || '',
 					}
 
 					if (withTemplate){

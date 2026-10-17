@@ -45444,7 +45444,7 @@ jQuery(document).ready(function($){ // do I need this?
 					'editorID': 'preview-import-css-0',
 					'data': data,
 					'filterClass': 'preview-import-css',
-					'readOnly': false,
+					'readOnly': !TvrUi.codeEditors, // only builds with the code editors allow free-text CSS
 					'editorHeight': 370
 				});
 				TvrCom.endT(arguments)
@@ -46091,7 +46091,7 @@ jQuery(document).ready(function($){ // do I need this?
 						'editorID': 'stats-full_custom',
 						'data': cssStr,
 						'filterClass': 'stats-full_custom',
-						'readOnly': false, // nice for debugging
+						'readOnly': !TvrUi.codeEditors, // editable is nice for debugging, where free-text CSS is allowed
 						'editorHeight': 370
 					});
 					TvrCom.endT(arguments)
@@ -61573,6 +61573,11 @@ TvrMT.mod.MTlayout = (function(){
 
 		editor_and_gui: function(ensureBothVisible){
 
+			// builds without the code editors have no editor panel
+			if (!TvrUi.codeEditors){
+				return false;
+			}
+
 			var leftConfig = this.layout_config('left'),
 				foldersCalcAdjust = TvrUi.pref.dock_folders_left ? 1 : 0;
 
@@ -62119,7 +62124,8 @@ TvrMT.mod.MTlayout = (function(){
 
 			else {
 
-				if (!TvrUi.pref.dock_editor_left){
+				// (builds without the code editors have no editor row)
+				if (!TvrUi.pref.dock_editor_left && TvrUi.codeEditors){
 					effective_num_rows = 2;  // main top bar, editor
 				}
 
@@ -62593,7 +62599,7 @@ TvrMT.mod.MTlayout = (function(){
 
 						// update the node - minmax(auto,
 						var columnCSS = '.wizard-panes { grid-template-columns:1fr '+display_sizes.join(' ')+'; }';
-						$('#inspection-columns').text(columnCSS);
+						$('#inspection-columns-inline-css').text(columnCSS);
 
 						// resize the HTML editor
 						MTace.eds['wizard_inspector_html'].resize();
@@ -62713,12 +62719,12 @@ TvrMT.mod.MTlayout = (function(){
 
 			// update the node for the main grid
 			var columnCSS = '.visual-view { grid-template-columns: '+display_sizes.join(' ')+' }';
-			$('#main-interface-columns').text(columnCSS);
+			$('#main-interface-columns-inline-css').text(columnCSS);
 
 			// update the node for the footer styles
 			//console.log('The footer columns', display_sizes_footer)
 			var footerColumnCSS = '#advanced-wizard { grid-template-columns: '+display_sizes_footer.join(' ')+' }';
-			$('#mt-footer-columns').text(footerColumnCSS);
+			$('#mt-footer-columns-inline-css').text(footerColumnCSS);
 
 		},
 
