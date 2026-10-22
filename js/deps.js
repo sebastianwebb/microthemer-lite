@@ -23568,8 +23568,9 @@ TvrMT.TvrCom = (function(){
 			}
 
             // taken from https://css-tricks.com/snippets/javascript/htmlentities-for-javascript/
-			str = str
-                .replace(/&[^(#\d+;|a-z+;)]/g, '&amp;')
+			// escape & unless it already starts an entity (the old /&[^(...)]/ char class also swallowed the next char)
+			str = String(str)
+                .replace(/&(?!#?[a-zA-Z0-9]+;)/g, '&amp;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;')
                 .replace(/</g, '&lt;')
@@ -50933,6 +50934,9 @@ jQuery(document).ready(function($){ // do I need this?
                                 : currentnode.className != '' ? ('.' + currentnode.className)
                                     : '');
 
+                        // id/class come from the previewed page
+                        key = TvrCom.escapeHTML(key);
+
                         html += '<dt><span class="inheritance-label">'+TvrLang.inherited_from+': </span><span class="inheritance-el" title="'+key+'">'+key+'</span></dt>';
                     }
 
@@ -50950,11 +50954,11 @@ jQuery(document).ready(function($){ // do I need this?
 
                         // dialog atts for loading popup
                         dialogAtts = 'rel="inspect-stylesheet" ' +
-                            'data-href="'+rules[i].href+'" data-selector="'+
-                            TvrCom.escapeHTML(rules[i].selector)+'" data-media="'+rules[i].media+'"';
+                            'data-href="'+TvrCom.escapeHTML(rules[i].href)+'" data-selector="'+
+                            TvrCom.escapeHTML(rules[i].selector)+'" data-media="'+TvrCom.escapeHTML(rules[i].media)+'"';
 
                         stylesheet = '<span class="style-src show-dialog" '+ dialogAtts +
-                            'title="'+title+'">'+basename+'</span>';
+                            'title="'+TvrCom.escapeHTML(title)+'">'+TvrCom.escapeHTML(basename)+'</span>';
 
                         wrapClass+= ' new-sheet-rule';
                     } else {
@@ -50964,7 +50968,7 @@ jQuery(document).ready(function($){ // do I need this?
 							label = isInline
 								? 'inline'
 								: '&lt;style&gt;',
-							idNote = id ? ' (style#'+id+')' : '',
+							idNote = id ? ' (style#'+TvrCom.escapeHTML(id)+')' : '',
 							title = id.indexOf('mtprv') === 0
 								? 'User\'s own '+TvrUi.appName+' styles'+idNote
 								: (isInline
@@ -50981,7 +50985,7 @@ jQuery(document).ready(function($){ // do I need this?
                         var mediaLabel = rules[i].media == 'all'
                             ? '['+TvrLang.all_devices+']'
                             : '@media ' + rules[i].media;
-                        media = '<span class="media-condition">'+mediaLabel+'</span>';
+                        media = '<span class="media-condition">'+TvrCom.escapeHTML(mediaLabel)+'</span>';
                         wrapClass+= ' has-media-rule';
                     } else {
                         wrapClass+= ' no-media-rule';
@@ -51017,7 +51021,7 @@ jQuery(document).ready(function($){ // do I need this?
                     html += '<abbr>';
 
                     //add the selector and open block
-                    html += '<span class="cssselector">' + rules[i].selector + '</span> {\n';
+                    html += '<span class="cssselector">' + TvrCom.escapeHTML(rules[i].selector) + '</span> {\n';
 
                     //iterate to add the properties
                     for(var j in rules[i].properties)
@@ -51029,12 +51033,12 @@ jQuery(document).ready(function($){ // do I need this?
                         html += '    ';
                         if(prop.status == 'cancelled')
                         {
-                            html += '<del>' + j + ': ' + prop.value + ';</del>';
+                            html += '<del>' + TvrCom.escapeHTML(j) + ': ' + TvrCom.escapeHTML(prop.value) + ';</del>';
                         }
                         else
                         {
-                            html += '<span class="cssproperty">' + j + '</span>: '
-                                + '<span class="cssvalue">' + prop.value + '</span>;';
+                            html += '<span class="cssproperty">' + TvrCom.escapeHTML(j) + '</span>: '
+                                + '<span class="cssvalue">' + TvrCom.escapeHTML(prop.value) + '</span>;';
                         }
                         html += '\n';
                     }
@@ -54523,7 +54527,8 @@ jQuery(document).ready(function($){
                         timeTT = 'title="'+ TvrLang.settings_saved+': '+formattedTime+'"';
                     }
 
-                    var html = '<span class="short-status-text" '+timeTT+'>'+text+moreDots+'</span>'+icon;
+                    // text was read with .text() (decoded) and may be e.g. a frontend JS error message
+                    var html = '<span class="short-status-text" '+timeTT+'>'+TvrCom.escapeHTML(text)+moreDots+'</span>'+icon;
 
                     $short.add($curDialogStatus)
                         .addClass('tvr-'+errorClass)
@@ -55661,7 +55666,7 @@ jQuery(document).ready(function($){
 							if ( item.category && item.category != currentCategory ) {
 								var catClass = TvrCom.convert_to_param(item.category, '')+'-category';
 								ul.append( "<li class='ui-autocomplete-category "+catClass+"'>" +
-									"<span"+toggle_cat+">" + item.category + '</span>' + icons + "</li>"
+									"<span"+toggle_cat+">" + TvrCom.escapeHTML(item.category) + '</span>' + icons + "</li>"
 								);
 								currentCategory = item.category;
 
@@ -55709,7 +55714,7 @@ jQuery(document).ready(function($){
 									li.addClass('isColorVal');
 
 									itemToAppend.prepend(
-										'<span class="var-color-box" style="background-color: '+item.value+'"></span>'
+										'<span class="var-color-box" style="background-color: '+TvrCom.escapeHTML(item.value)+'"></span>'
 									);
 								}
 
@@ -55724,8 +55729,10 @@ jQuery(document).ready(function($){
 								// highlight search term in results
 								if (TvrUi.search_pages_latest_term){
 
-									var pageTitle = li.text(),
-										term = TvrUi.search_pages_latest_term,
+									// page titles are user content and the result goes to .html(), so escape both
+									// (the term is escaped the same way so it still matches the escaped title)
+									var pageTitle = TvrCom.escapeHTML(li.text()),
+										term = TvrCom.escapeHTML(TvrUi.search_pages_latest_term),
 
 										// it seems when adding custom HTML, it doesn't get automatically wrapped
 										// so manually add the div if we're on that version of jQuery that wraps
@@ -58573,7 +58580,7 @@ TvrMT.mod.MTfolder = (function(){
 							extraClass+= ' item-conditional'
 						}
 
-						html+= '<div class="initial-auto-folder'+extraClass+'"'+title+createNewFolder+' data-expr="'+TvrCom.regular_escape_quotes(item.expr)+'" data-slug="'+item.slug+'" data-folder-badge="'+newBadge+'">'+item.label+'</div>';
+						html+= '<div class="initial-auto-folder'+extraClass+'"'+title+createNewFolder+' data-expr="'+TvrCom.regular_escape_quotes(item.expr)+'" data-slug="'+TvrCom.escapeHTML(item.slug)+'" data-folder-badge="'+newBadge+'">'+TvrCom.escapeHTML(item.label)+'</div>';
 					}
 
 					data.$content.find('div.folder-options-list').html(html);
@@ -58953,7 +58960,7 @@ TvrMT.mod.MTfolder = (function(){
 				if (doAutoFolder){
 					TvrUi.notifyFolderChanged = {
 						'short': 'Auto folder assignment',
-						'long': '<p>The selector was moved to a '+newText+'folder so that it targets the current page'+performanceText+', from '+origSecName+' to '+rawSecName+'</p>' +
+						'long': '<p>The selector was moved to a '+newText+'folder so that it targets the current page'+performanceText+', from '+TvrCom.escapeHTML(origSecName)+' to '+TvrCom.escapeHTML(rawSecName)+'</p>' +
 							'<p>To prevent automatic folder assignment, uncheck "Auto folder" at the bottom right of the interface. You can also switch between global and page styles from there.</p>',
 						'type' : 'info'
 					}
@@ -58985,7 +58992,7 @@ TvrMT.mod.MTfolder = (function(){
 				if (!doAutoFolder){
 					TvrUi.notifyFolderChanged = {
 						'short': tvrsprintf(TvrLang.notify_folder_limit_short, (TvrUi.maxSelsPerFolder)),
-						'long': '<p>'+ tvrsprintf(TvrLang.notify_folder_limit_long, rawSecName, origSecName)+'</p>',
+						'long': '<p>'+ tvrsprintf(TvrLang.notify_folder_limit_long, TvrCom.escapeHTML(rawSecName), TvrCom.escapeHTML(origSecName))+'</p>',
 						'type' : 'info'
 					}
 				}

@@ -3298,7 +3298,8 @@ try {
 							case 'type':
 								detail = tagName+'[type="'+found+'"]';
 						}
-						return  markup ? '<span class="mt-ui-element mt-bc-item">'+detail+'</span>' : detail;
+						// class/id/type values come from the previewed page, so escape them before they reach .html()
+						return  markup ? '<span class="mt-ui-element mt-bc-item">'+TvrCom.escapeHTML(detail)+'</span>' : detail;
 					},
 
 					// unstylable / hidden element MT should ignore for hover inspect
@@ -3796,7 +3797,7 @@ try {
 						// resolve the name for the breadcrumb trail (type, id, first class)
 						var bcLabel = tagName,
 							formattedBCLabel = markup
-								? '<span class="mt-ui-element mt-bc-item">'+tagName+'</span>'
+								? '<span class="mt-ui-element mt-bc-item">'+TvrCom.escapeHTML(tagName)+'</span>'
 								: bcLabel;
 
 						if (TvrCom.isDomEl($this)){
@@ -3863,7 +3864,7 @@ try {
 
 						if (pseudoEl){
 							bcLabel+= pseudoEl;
-							formattedBCLabel+= '<span class="mt-ui-element mt-bc-item mt-pseudo-crumb">'+pseudoEl+'</span>';
+							formattedBCLabel+= '<span class="mt-ui-element mt-bc-item mt-pseudo-crumb">'+TvrCom.escapeHTML(pseudoEl)+'</span>';
 						}
 
 						TvrCom.endT(arguments);

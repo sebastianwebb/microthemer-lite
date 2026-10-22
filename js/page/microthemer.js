@@ -581,8 +581,9 @@ jQuery(document).ready(function($){
 
 						var val = err[label];
 
+                        // error details can contain page-derived strings (e.g. selector syntax errors), so escape
                         if (label === 'URL' && val){
-                            val = '<a target="_blank" href="'+val+'">'+TvrCom.root_rel(val).split('?')[0]+'</a>';
+                            val = '<a target="_blank" href="'+TvrCom.escapeHTML(val)+'">'+TvrCom.escapeHTML(TvrCom.root_rel(val).split('?')[0])+'</a>';
                            // val+= ' (line '+err['line']+')';
                         }
 
@@ -596,6 +597,11 @@ jQuery(document).ready(function($){
 								? val.detail.message
 								: 'Error details unknown';
 
+							val = TvrCom.escapeHTML(val);
+						}
+
+						else {
+							val = TvrCom.escapeHTML(val);
 						}
 
                         jsDetails+= '<b>'+TvrCom.ucwords(label)+':</b> '+val+'<br />';
@@ -4191,8 +4197,9 @@ jQuery(document).ready(function($){
                     : color;
 
 				var	tooltipColor = TvrUi.pref.color_as_hex ? TvrCom.maybe_to_hex(color) : color,
-					title = color ? 'title="'+tooltipColor+'"' : '',
-					style = color ? 'style="background-color:'+colorValue+'"' : '',
+					// sampled site colors come from the previewed page's CSS, so escape attribute values
+					title = color ? 'title="'+TvrCom.escapeHTML(tooltipColor)+'"' : '',
+					style = color ? 'style="background-color:'+TvrCom.escapeHTML(colorValue)+'"' : '',
 					liClass = color ? 'has-color' : 'no-color',
 					id = size+'-'+type+'-'+ i;
 
@@ -4200,7 +4207,7 @@ jQuery(document).ready(function($){
                 var varSignal = TvrUi.isVariableTile(color);
 
 				var	span = color ? '<span class="tile-color '+id+'" ' +
-					'data-color="'+color+'" data-id="'+id+'" '+style+' '+title+'>'+varSignal+'</span>' : '';
+					'data-color="'+TvrCom.escapeHTML(color)+'" data-id="'+id+'" '+style+' '+title+'>'+varSignal+'</span>' : '';
 
 				tiles+= '<li class="'+size+'-tile '+type+'-tile  palette-tile '+liClass+'">'+span+'</li>'
 			}
@@ -5259,7 +5266,7 @@ jQuery(document).ready(function($){
 						typeClass+= 'conditional-tab ';
 					}
 
-					html+= '<span class="'+typeClass+activeClass+' mt-tab dialog-tab dialog-tab-'+i+' dialog-'+tab.tab_slug+'" rel="'+i+'">'+tab.name+'</span>';
+					html+= '<span class="'+typeClass+activeClass+' mt-tab dialog-tab dialog-tab-'+i+' dialog-'+TvrCom.escapeHTML(tab.tab_slug)+'" rel="'+i+'">'+TvrCom.escapeHTML(tab.name)+'</span>';
 				}
 
 				if (clearPreviousContent){
@@ -6547,7 +6554,7 @@ jQuery(document).ready(function($){
 					checkedAttr+' /> ' +
 					'<span class="fake-checkbox '+onState+' mtif mtif-tick-box-unchecked"></span>' +
 					'<span class="folder-icon tvr-icon"></span>' +
-					'<span class="ef-label">'+M.sectionH+'</span></li>';
+					'<span class="ef-label">'+TvrCom.escapeHTML(M.sectionH)+'</span></li>';
 
 				});
 				$('#available-folders').html(folders);
@@ -7791,7 +7798,7 @@ jQuery(document).ready(function($){
 								// and embolden the search text BEFORE adding color coding spans to ensure
 								// HTML atts are not encased
 								var	declaration = cssf+': '+propertyValue+propertyUnit,
-									label = TvrCom.embolden_matched_text(declaration, searchText);
+									label = TvrCom.embolden_matched_text(TvrCom.escapeHTML(declaration), TvrCom.escapeHTML(searchText));
 
 								// color code the property and value if required
 								if (colorCodeSearchDec){
@@ -7840,7 +7847,7 @@ jQuery(document).ready(function($){
 								label: TvrUi.color_code_property_value(
 
 									// highlight the matched text
-									TvrCom.embolden_matched_text(trimmedLine, searchText)
+									TvrCom.embolden_matched_text(TvrCom.escapeHTML(trimmedLine), TvrCom.escapeHTML(searchText))
 								)
 							});
 						}
@@ -7976,14 +7983,14 @@ jQuery(document).ready(function($){
 			var $name = $item.find('.name-text').first();
 
 			if (undoHighlight){
-				$name.html(name);
+				$name.text(name); // names are raw (e.g. folder named from a post title)
 			}
 
 			else {
 
 				if (TvrUi.search_filter && name.match(TvrUi.search_filter.searchRegex)){
 					$name.html(
-						TvrCom.embolden_matched_text(name, TvrUi.search_filter.searchText)
+						TvrCom.embolden_matched_text(TvrCom.escapeHTML(name), TvrCom.escapeHTML(TvrUi.search_filter.searchText))
 					);
 				}
 			}
@@ -16307,7 +16314,7 @@ jQuery(document).ready(function($){
 					baseStyles = isCurrentState ? TvrUi.get_base_styles_switch(key) : '';
 
 				if (curVarRootLabel){
-					atts+='data-rootlabel="'+curVarRootLabel+'"';
+					atts+='data-rootlabel="'+TvrCom.escapeHTML(curVarRootLabel)+'"';
 				}
 
 				if (data[key].existing){
@@ -17547,7 +17554,7 @@ jQuery(document).ready(function($){
 								// report hex as well as rgb
 								inpTitle = TvrCom.maybe_to_hex(nonTruncVal);
 							}
-							$cSty.html('<span style="'+inlineStyle+'"></span>');
+							$cSty.html('<span style="'+TvrCom.escapeHTML(inlineStyle)+'"></span>');
 
 						} else {
 							//$cSty.html(propVal);
@@ -17569,9 +17576,10 @@ jQuery(document).ready(function($){
 				}
 
 				// plain text value or color box and text value
+				// (inpTitle may be a computed value from the previewed page)
 				var optValue = !isColor
-					? inpTitle
-					: TvrUi.trans_gradient_box(nonTruncVal, 'computed-color-box')+ inpTitle;
+					? TvrCom.escapeHTML(inpTitle)
+					: TvrUi.trans_gradient_box(nonTruncVal, 'computed-color-box')+ TvrCom.escapeHTML(inpTitle);
 
 				$optionValue.html(optValue);
 
@@ -17619,13 +17627,14 @@ jQuery(document).ready(function($){
 					values = split.length ? split : [value];
 
                 $cSty.each(function(index){
-                	$(this).html(values[index]);
+                	$(this).html(TvrCom.escapeHTML(values[index]));
 				});
 			}
 
 			else {
 				//console.log('update_comp_input_overlay', $cSty, value)
-                $cSty.html(value);
+				// computed values come from the previewed page (escapeHTML leaves existing entities, so pre-escaped values are fine)
+                $cSty.html(TvrCom.escapeHTML(value));
 			}
 
 		},
@@ -17668,17 +17677,19 @@ jQuery(document).ready(function($){
 				val.indexOf('rgb') < 0 || // not a color
 				val.indexOf(':')> -1 // gui custom code prop:val
 			) {
-				return val;
+				return TvrCom.escapeHTML(val); // computed value from the previewed page
 			}
 			var valF = TvrCom.maybe_to_hex(val);
 			var str = TvrUi.trans_gradient_box(val);
-			str+= '<span class="colored-val">'+valF+'</span>';
+			str+= '<span class="colored-val">'+TvrCom.escapeHTML(valF)+'</span>';
 			return str;
 		},
 		// display color with trans squares behind using gradient trick
 		trans_gradient_box: function(color, clazz){
 			clazz = clazz ? clazz : 'colored-box';
 			var bgImage = TvrUi.pref.mt_dark_mode ? "trans-big-dark" : "trans-big";
+			// color may be a computed value from the previewed page, so escape for the attribute
+			color = TvrCom.escapeHTML(color);
 			var box = '<span class="'+clazz+'" style="background-image: '
 				+'linear-gradient(0deg, '+color+', '+color+'), '+
 				'url('+TvrUi.pluginUrl+'images/'+bgImage+'.png)"' +
@@ -18212,7 +18223,8 @@ jQuery(document).ready(function($){
 				// a more efficient system of calculating width without a temp dom element
 				var text = $obj.val(),
 					textLength = text.length,
-					spacedText = 1 ? text.replace(/\s/g, "&nbsp;") : text; // extra !== false ? extra : Math.ceil((textLength/2.3))+1;
+					// escape first: the value may be a selector built from the previewed page
+					spacedText = 1 ? TvrCom.escapeHTML(text).replace(/\s/g, "&nbsp;") : text; // extra !== false ? extra : Math.ceil((textLength/2.3))+1;
 
 				//console.log('The orig, replaced text', text, spacedText);
 
@@ -21495,8 +21507,11 @@ jQuery(document).ready(function($){
 						continue;
 					}
 
+					// computed values can contain page-controlled strings (e.g. font-family, url()), so escape
 					if (val && val.toString().indexOf('rgb') > -1){ // toString, else webkit silently fails on indexOf
-						val = TvrUi.trans_gradient_box(val) +' '+TvrCom.maybe_to_hex(val);
+						val = TvrUi.trans_gradient_box(val) +' '+TvrCom.escapeHTML(TvrCom.maybe_to_hex(val));
+					} else {
+						val = TvrCom.escapeHTML(val);
 					}
 
 					li+= '<span class="info-label '+prop+'-info-label">'+propLabel+':</span>\n' +
@@ -21540,13 +21555,15 @@ jQuery(document).ready(function($){
 				if (!TvrCom.isDefined(value)){
 					value = '-';
 				} else if (cssf === 'color' || cssf === 'background-color'){
-					value = TvrUi.trans_gradient_box(value) +' '+TvrCom.maybe_to_hex(value);
+					value = TvrUi.trans_gradient_box(value) +' '+TvrCom.escapeHTML(TvrCom.maybe_to_hex(value));
 					//console.log('we should', value, cssf);
 				} else if (cssf !== 'font-size' && cssf !== 'line-height'){
 
 					//console.log('The cssf/value', cssf, value)
 
-					value = value.replace(/px$/, '').replace(/^0$/, '-');
+					value = TvrCom.escapeHTML(value.replace(/px$/, '').replace(/^0$/, '-'));
+				} else {
+					value = TvrCom.escapeHTML(value);
 				}
 
 				//console.log('we do it', value, cssf);
