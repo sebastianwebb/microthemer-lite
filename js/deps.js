@@ -28467,6 +28467,11 @@ TvrMT.mod.MTace = (function(){
 			MTace.editor_modes[editorID] = mode;
 		},
 
+		// builds without the code editors only ship Ace's CSS mode, so other languages show as plain text
+		available_mode: function(mode){
+			return TvrUi.codeEditors || mode === 'css' ? mode : 'text';
+		},
+
 		// initiate editor
 		initiate_editor: function(editorID, mode){ TvrCom.startT(arguments);
 
@@ -28478,7 +28483,7 @@ TvrMT.mod.MTace = (function(){
 			// set theme and editing mode
 			var theme = parseInt(TvrUi.pref.mt_dark_mode) === 1 ? MTace.themes.dark : MTace.themes.light ;
 			editor.setTheme("ace/theme/"+theme);
-			editor.getSession().setMode("ace/mode/"+mode);
+			editor.getSession().setMode("ace/mode/"+MTace.available_mode(mode));
 			this.log_editor_mode(editorID, mode);
 
 			// set editor options
@@ -28569,7 +28574,7 @@ TvrMT.mod.MTace = (function(){
 
 			// set the editor mode if it has changed
 			if (config.mode && config.mode !== MTace.editor_modes[editorID]){
-				editor.getSession().setMode("ace/mode/"+config.mode);
+				editor.getSession().setMode("ace/mode/"+MTace.available_mode(config.mode));
 				this.log_editor_mode(editorID, config.mode);
 			}
 
