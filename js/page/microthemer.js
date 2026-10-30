@@ -15245,7 +15245,10 @@ jQuery(document).ready(function($){
 					if (MTlayout.horizontal_only()){
 						var $scope = TvrUi.stat.inlineEditor;
 						$scope.css('height', TvrUi.pref.layout.editor_height.size);
-						MTace.get_focus_editor().resize();
+						var focusEditor = MTace.get_focus_editor();
+						if (focusEditor){
+							focusEditor.resize();
+						}
 						MTlayout.toolbar_adjusted();
 
 						//console.log('we set the editor height based previous resize', (TvrUi.pref.layout.editor_height.size))

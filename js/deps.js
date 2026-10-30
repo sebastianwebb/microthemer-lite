@@ -28692,6 +28692,11 @@ TvrMT.mod.MTace = (function(){
 			editor = editor ? editor :this.get_focus_editor();
 			config = config || {};
 
+			// builds without the code editors have no editor to focus
+			if (!editor){
+				return;
+			}
+
 			//console.log('maybe_resume_editor_focus', !config.doNotFocusEditor, !TvrUi.autocompleteIsOpen, !MTint.active_builders.length);
 			//console.trace();
 
@@ -31183,6 +31188,10 @@ TvrMT.mod.MTace = (function(){
 		},
 
 		isCSSEditor: function(editor){
+
+			if (!editor){
+				return false;
+			}
 
 			var mode = MTace.editor_modes[editor.container.id];
 			//console.log('isCSSEditor mode', mode && mode.indexOf('css') > -1)
