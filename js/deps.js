@@ -28509,6 +28509,11 @@ TvrMT.mod.MTace = (function(){
 
 		// update the content/height of the adaptable editor
 		update_adaptable_editor: function(config){ TvrCom.startT(arguments);
+			// builds without code editors never create the adaptable editor
+			if (!MTace.eds['adaptable-editor']){
+				TvrCom.endT(arguments);
+				return;
+			}
 			//console.log('before update', config);
 			//console.trace();
 			MTace.MTupdatingAdaptableEditor = true;

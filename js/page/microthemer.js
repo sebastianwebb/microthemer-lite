@@ -19054,6 +19054,11 @@ jQuery(document).ready(function($){
 			var editor = MTace.eds['adaptable-editor'],
 				code = existingSelector.code;
 
+			// builds without the code editors have no editor to navigate
+			if (!editor){
+				return;
+			}
+
 			// go to the relevant line for the selector
 			editor.gotoLine(existingSelector.line, 0, false);
 			editor.navigateLineEnd();
