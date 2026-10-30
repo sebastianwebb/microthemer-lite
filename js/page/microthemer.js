@@ -8555,6 +8555,7 @@ jQuery(document).ready(function($){
 
 			// get name passed in or default to 'New folder'
 			var newFolderButtonClicked = false
+			name = name ? TvrCom.strip_name_tags(name) : name;
 			if (!name){
 				name = TvrLang.untitled_folder;
 				newFolderButtonClicked = true;
@@ -8738,7 +8739,7 @@ jQuery(document).ready(function($){
 		action_rename_section: function($clicked, M, userVal){ TvrCom.startT(arguments);
 
 			M = M || TvrUi.get_meta_for_context($clicked, 'section', 'folder-popup');
-			userVal = userVal || $clicked.closest('.edit-section-form').find('.edit-section-label-input').val();
+			userVal = TvrCom.strip_name_tags(userVal || $clicked.closest('.edit-section-form').find('.edit-section-label-input').val());
 
 			var tmp = {};
 
@@ -9394,7 +9395,7 @@ jQuery(document).ready(function($){
 
 			//TvrCom.callStack();
 
-			var userVal = TvrUi.strip_beyoned_brace( name, 'name' ),
+			var userVal = TvrCom.strip_name_tags(TvrUi.strip_beyoned_brace( name, 'name' )),
 				defaultName = TvrLang.untitled,
 				tmp = {};
 

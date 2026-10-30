@@ -23194,6 +23194,14 @@ TvrMT.TvrCom = (function(){
 			TvrCom.endT(arguments)
 		},*/
 
+		// The server removes HTML tags from labels and slugs (Schemas::stripTags). Do the same before
+		// a name is displayed or slugged, otherwise both change once the settings are reloaded.
+		strip_name_tags: function(name){
+			return String(name)
+				.replace(/<!--[\s\S]*?-->|<\/?[a-z][a-z0-9:-]*(?:\s[^<>]*?)?\/?>|<![a-z][^<>]*>/gi, '')
+				.trim();
+		},
+
 		new_name_checks: function(newName, con, section){
 
             if (TvrCom.isNumeric(newName)){
@@ -55913,7 +55921,8 @@ jQuery(document).ready(function($){
 							//console.log('Add an id to the ul', 'combo-belongs-to-'+rel, ul)
 						}
 
-						else if (isSiteSearch){
+						// the preview path input is also a separated menu, so this can't be an else if
+						if (isSiteSearch){
 							ul.addClass('site-search-menu');
 						}
 
@@ -63290,7 +63299,7 @@ TvrMT.mod.MTlayout = (function(){
 			pref_array['layout'] = TvrUi.pref.layout;
 
 			// save the new settings in one ajax call
-			MTsave.save_multiple_preferences(pref_array, 1);
+			MTsave.save_multiple_preferences(pref_array);
 
 			//console.log('switch layout', preset, config, pref_array);
 
