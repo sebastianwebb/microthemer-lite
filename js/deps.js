@@ -24042,6 +24042,10 @@ TvrMT.TvrCom = (function(){
                 levels[(parseInt(i)+2)] !== 'label' && this.isNumeric(levels[(parseInt(i)+1)]));*/
 		},
 
+		isEmptyArrayForNamedKey: function(value, key){
+			return Array.isArray(value) && !value.length && !this.isNumeric(key);
+		},
+
         inside_valid_array_structure: function(isInside){
 
 		    var valid = ['important', 'styles', 'pg_disabled', 'pgtab_disabled', 'griditems', 'value', 'mods'];
@@ -24144,6 +24148,12 @@ TvrMT.TvrCom = (function(){
 
 					}
 
+					// An empty PHP array reaches the browser as [], where a named key works but is then dropped
+					// by JSON.stringify, losing the data on the next full save
+					if (notLastLevel && this.isEmptyArrayForNamedKey(obj[k], levels[parseInt(i)+1])){
+						obj[k] = {};
+					}
+
 					// move object reference to next level if object
 					if (notLastLevel && obj[k] === Object(obj[k]) ){ // obj[k] === Object(obj[k])
 						obj = obj[k];
@@ -24174,6 +24184,9 @@ TvrMT.TvrCom = (function(){
                     // append terminology is a bit confusing. We don't append to an existing string
 					//	we tack on a property to the object, or overwrite it
                     case 'append':
+						if (this.isEmptyArrayForNamedKey(obj[key], config.key)){
+							obj[key] = {};
+						}
                         obj[key][config.key]= val;
                         break;
                     case 'reorder':
@@ -38269,7 +38282,14 @@ jQuery(document).ready(function($){
                 }
 
                 if (TvrUi.jsDataFunc){ TvrCom.startT('modify_main_js_object_called_by_'+TvrUi.jsDataFunc+'_part_run_loop'); }
-                c = MTloop.run(TvrUi.uiData, c);
+
+                // a delete only needs the item removed where it is, not a loop over all the data
+                if (action === 'delete'){
+                    MTloop.delete_item(c.settings, actionSettings);
+                } else {
+                    c = MTloop.run(TvrUi.uiData, c);
+                }
+
                 if (TvrUi.jsDataFunc){ TvrCom.endT('modify_main_js_object_called_by_'+TvrUi.jsDataFunc+'_part_run_loop'); }
 
                 settings = c.settings;
@@ -38508,9 +38528,8 @@ jQuery(document).ready(function($){
                         MTloop.reorder_items(c, level, action, actionSettings);
                         break;
 
-                    // rename or delete item - currently involves JS object rebuild
+                    // rename item - currently involves JS object rebuild (delete is done by delete_item)
                     case 'rename':
-                    case 'delete':
                         MTloop.rebuild_item(c, level, action, actionSettings);
                         break;
 
@@ -39641,15 +39660,6 @@ jQuery(document).ready(function($){
                         actionSettings.targetSelector === itemKey))){
                     switch(action) {
 
-                        case 'delete':
-                            skip = true;
-                            c.settings.savePackage.push({
-                                action: 'delete',
-                                trail: trail.slice(0, -1), // we want to act on the parent
-                                key: itemKey
-                            });
-                        break;
-
                         case 'rename':
 
                             itemKey = actionSettings.new_key;
@@ -39730,6 +39740,60 @@ jQuery(document).ready(function($){
                     TvrCom.updateObject(newUiData, levels, c.item)
                 }
 
+            },
+
+            // Delete a folder (targetDepth: 'section') or selector from every tree it's in: the main tree, each
+            // breakpoint, and !important (all devices and each breakpoint). The item is removed where it is,
+            // so the rest of TvrUi.uiData keeps its objects, and a delete is saved for each tree that had it.
+            delete_item: function(settings, actionSettings){
+
+                var savePackage = settings.savePackage = settings.savePackage || [],
+                    uiData = TvrUi.uiData,
+                    nonSection = uiData.non_section || {},
+                    isSection = actionSettings.targetDepth === 'section',
+                    key = isSection ? actionSettings.targetSection : actionSettings.targetSelector,
+                    trees = [[]];
+
+                Object.keys(nonSection.m_query || {}).forEach(function(mq_key){
+                    trees.push(['non_section', 'm_query', mq_key]);
+                });
+
+                if (nonSection.important){
+                    trees.push(['non_section', 'important']);
+                    Object.keys(nonSection.important.m_query || {}).forEach(function(mq_key){
+                        trees.push(['non_section', 'important', 'm_query', mq_key]);
+                    });
+                }
+
+                if (!key){
+                    return settings;
+                }
+
+                trees.forEach(function(treeTrail){
+
+                    var trail = isSection ? treeTrail : treeTrail.concat([actionSettings.targetSection]),
+                        parent = uiData;
+
+                    for (var i = 0; i < trail.length && parent; i++){
+                        parent = Object.prototype.hasOwnProperty.call(parent, trail[i]) ? parent[trail[i]] : false;
+                    }
+
+                    // all-devices !important keeps its breakpoints under [m_query], which isn't a folder
+                    if (isSection && treeTrail.length === 2 && key === 'm_query'){
+                        return;
+                    }
+
+                    if (parent && typeof parent === 'object' && Object.prototype.hasOwnProperty.call(parent, key)){
+                        delete parent[key];
+                        savePackage.push({
+                            action: 'delete',
+                            trail: trail,
+                            key: key
+                        });
+                    }
+                });
+
+                return settings;
             },
 
             reorder_after_copy: function(settings, $item, skipSave){
@@ -42074,18 +42138,26 @@ jQuery(document).ready(function($){ // do I need this?
 
 					}
 
+					var importantData = TvrCom.checkObject(TvrUi.uiData, importantSelectorLevels);
+
 					// update save package - whole selector / important section
+					// With no !important values, delete the entry rather than saving false, which this page's data
+					// wouldn't have until a reload, so a rename or delete before then would leave it behind
 					c.settings.savePackage.push(
 						{
 							action: 'replace',
 							trail: selectorLevels,
 							data: selector
 						},
-                        {
+						importantData ? {
                             action: 'replace',
                             trail: importantSelectorLevels,
-                            data: TvrCom.checkObject(TvrUi.uiData, importantSelectorLevels)
-                        }
+                            data: importantData
+                        } : {
+							action: 'delete',
+							trail: importantSectionLevels,
+							key: selectorSlug
+						}
 					);
 
 				}

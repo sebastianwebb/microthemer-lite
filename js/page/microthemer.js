@@ -1254,6 +1254,23 @@ jQuery(document).ready(function($){
 									}
 								}
 
+								// The label was focused without a click (e.g. with Tab), so label editing never started.
+								// It isn't a draft, and saving it as one re-adds the selector under the new key
+								// without renaming its breakpoint and !important copies, which loses them.
+								else if (!TvrUi.retargetSelector && !TvrUi.draftSelector.atts.id){
+
+									if (elementID === 'sel-hierarchy-input'){
+										TvrUi.selectorLabelEditing = TvrUi.selector_key_atts(
+											TvrUi.get_meta($('#'+TvrUi.selInFocusID), 'selector')
+										);
+										if (confirm){
+											TvrUi.save_selector_label_edit();
+										} else {
+											TvrUi.cancel_selector_label_edit();
+										}
+									}
+								}
+
 								// new or retarget selector action
 								else {
 
@@ -9037,9 +9054,6 @@ jQuery(document).ready(function($){
 			!MTF || MTF.edit_style_nodes(M, 'delete');
 
 			var settings = MTloop.modify_main_js_object('delete', {}, {
-				rebuild: true,
-				//callbackDepth: ['section', 'selector'], // section must also be copied
-				maxDepth: 'section',
 				targetDepth: 'section',
 				targetSection: M.sectionSlug
 			});
@@ -10687,9 +10701,6 @@ jQuery(document).ready(function($){
 
 			// delete from JS object
 			var settings = MTloop.modify_main_js_object('delete', {}, {
-				rebuild: true,
-				callbackDepth: ['section', 'selector'], // section must also be copied
-				maxDepth: 'selector',
 				targetDepth: 'selector',
 				targetSection: M.sectionSlug,
 				targetSelector: M.selectorSlug
@@ -14172,7 +14183,9 @@ jQuery(document).ready(function($){
 			console.log(' sampled', $.extend(true, [], sampled));*/
 
 
-			TvrUi.maybeReflowCombo($input, update, reflow, search);
+			// pass the resolved source: without it, the search term became the source, which jQuery UI
+			// fetches as a URL (a string) or calls as a function (undefined), emptying the open menu
+			TvrUi.maybeReflowCombo($input, update, reflow, source, search);
 
 
 
