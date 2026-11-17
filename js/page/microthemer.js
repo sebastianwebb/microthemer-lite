@@ -22678,7 +22678,7 @@ jQuery(document).ready(function($){
 
 
 						$settings.attr('id', 'mqs-'+mq_key);
-						$settings.find('.mquery-name').html(obj.label);
+						$settings.find('.mquery-name').text(obj.label);
 
 						// Update input names
 						$settings.find('.mquery-label, .mquery-query, .mquery-site_preview_width, .mquery-hide').each(function(){
