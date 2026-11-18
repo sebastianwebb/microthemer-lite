@@ -930,7 +930,9 @@ jQuery(document).ready(function($){
 			// todo run filter on :in-range, :out-of-range, :invalid, :valid fo better pseudo support
 			jquery_compat: function(code){
 				try {
-					var $elements = $(code);
+					// find() only ever treats code as a selector: jQuery(code) would build elements from
+					// a string that starts with "<"
+					var $elements = $(document).find(code);
 					// selector was successful
 					return $elements;
 				} catch(err) {

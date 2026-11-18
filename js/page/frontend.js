@@ -1655,8 +1655,9 @@ try {
 							};
 
 						if (returnString){
+							// content comes from the previewed page (e.g. content: attr(title)), so it is text
 							return '<span id="'+ast.attrs.id+'" class="'+ast.attrs['class']+'" ' +
-								'style="'+ast.attrs.style+'">'+ast.children[0].content+'</span>';
+								'style="'+TvrCom.escapeHTML(ast.attrs.style)+'">'+TvrCom.escapeHTML(ast.children[0].content)+'</span>';
 						} else {
 							return ast;
 						}
@@ -3015,7 +3016,7 @@ try {
 									+inFocusClass+'" data-code="'+code+'" data-type="'+item.type+'" data-line="'+item.line+'" '+title+
 									'data-id="'+item.id+'" >'+
 									TvrMT.data.templates.existing_sel_radio +
-									'<span class="mt-item-name">'+item.sName+'</span>'+
+									'<span class="mt-item-name">'+TvrCom.escapeHTML(item.sName)+'</span>'+
 									'<span class="num-els-icon-wrap">'+
 									TvrUi.num_els_icon(item['n'])+
 									'</span>'+

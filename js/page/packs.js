@@ -355,10 +355,12 @@ jQuery(document).ready(function($){
 							if (deleteStatus === '1'){
 
 								// remove it from the directory array
-								var index = TvrMT.data.prog.combo.directories.indexOf(dirLabel);
+								// (the editor's pack list; the packs page doesn't load it)
+								var directories = TvrCom.checkObject(TvrMT, ['data', 'prog', 'combo', 'directories']);
+								var index = Array.isArray(directories) ? directories.indexOf(dirLabel) : -1;
 								//console.log('index, lavel', index, dirLabel)
 								if (index !== -1) {
-									TvrMT.data.prog.combo.directories.splice(index, 1);
+									directories.splice(index, 1);
 								}
 
 								if (con == 'single'){

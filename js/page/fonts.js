@@ -292,7 +292,8 @@ jQuery(document).ready(function($){
                     type: "GET",
                     url: TvrFonts.google.url,
                     data: TvrFonts.resolve_api_data(TvrFonts.google.filters),
-                    dataType: 'jsonp',
+                    // plain JSON over CORS: JSONP would run the response as a script
+                    dataType: 'json',
                     async: true,
                     timeout: TvrUi.tOut,
                     error:function(x,e){

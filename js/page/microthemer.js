@@ -7927,8 +7927,9 @@ jQuery(document).ready(function($){
 					// format the search HTML
 					searchHTML+=
 						'<div class="mt-search-mq mt-search-entry" ' +
-						'data-pg="code" data-property="css" data-mq_key="'+mq_key+'">'+
-							TvrCom.embolden_matched_text(mqName, searchText)
+						'data-pg="code" data-property="css" data-mq_key="'+TvrCom.escapeHTML(mq_key)+'">'+
+							// the label comes back decoded from .text() (get_tab_name)
+							TvrCom.embolden_matched_text(TvrCom.escapeHTML(mqName), TvrCom.escapeHTML(searchText))
 						+'</div>'
 						+ entries;
 				}

@@ -23568,6 +23568,12 @@ TvrMT.TvrCom = (function(){
 			return sanitisedValue;
 		},
 
+		// CSS that goes inside a <style> element built as HTML: "</" (or a trailing "<") becomes the
+		// CSS escape "\3c " so stored or imported CSS can't close the element (as Helper::escapeInlineCSS)
+		escapeInlineCSS: function(css){
+			return String(css === undefined || css === null ? '' : css).replace(/<(?=\/|$)/g, '\\3c ');
+		},
+
 		// escape HTML (good for escaping attributes as it also escapes quotes)
 		escapeHTML: function(str){
 
@@ -40266,7 +40272,7 @@ jQuery(document).ready(function($){
                                 ? 'media="not all"'
                                 : '';
 
-                        cc_node_code+= '<style '+noMediaHack+' id="'+this.format_css_node_id(cc_trail)+'"  />'+val+'</style>';
+                        cc_node_code+= '<style '+noMediaHack+' id="'+this.format_css_node_id(cc_trail)+'"  />'+TvrCom.escapeInlineCSS(val)+'</style>';
                     }
 
                 }
@@ -40358,7 +40364,7 @@ jQuery(document).ready(function($){
                         //console.log('format_style_node', c.section_key, noMediaHack)
 
                         c.settings.style_nodes[mq_key].node_code+=
-                            '<style id="'+this.format_css_node_id([mq_key, c.key])+'" '+noMediaHack+' />'+sectionCSS+'</style>';
+                            '<style id="'+this.format_css_node_id([mq_key, c.key])+'" '+noMediaHack+' />'+TvrCom.escapeInlineCSS(sectionCSS)+'</style>';
                     }
                 }
 
@@ -40370,7 +40376,8 @@ jQuery(document).ready(function($){
             format_css_node_id: function(pieces, prefix){
                 prefix = prefix ? prefix : 'mtprv';
                 pieces.unshift(prefix);
-                return pieces.join('-');
+                // keys can come from imports, and the id goes into an HTML attribute
+                return TvrCom.escapeHTML(pieces.join('-'));
             },
 
             // recalculate active events and refresh if they've changed
